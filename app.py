@@ -4,14 +4,13 @@ import dash
 import pandas as pd
 from dash import dash_table as dt
 from vega_datasets import data
-from dash_bootstrap_templates import load_figure_template
-
-load_figure_template("LUX")
+import dash_bootstrap_components as dbc
 
 tabs_styles = {
-    'height': '44px',
-    "margin-left": "30rem",
-    "margin-right": "50rem"
+    'height': '55px',
+    "margin-left": "23rem",
+    "margin-right": "30rem",
+    "text-align": "center"
 }
 tab_style = {
     'borderBottom': '1px solid #d6d6d6',
@@ -22,23 +21,24 @@ tab_style = {
 tab_selected_style = {
     'borderTop': '1px solid #d6d6d6',
     'borderBottom': '1px solid #d6d6d6',
-    'backgroundColor': '#119DFF',
+    'backgroundColor': '#364f3d',
     'color': 'white',
     'padding': '6px'
 }
 
 SIDEBAR_STYLE = {
     "position": "fixed",
-    "top": 0,
-    "left": 0,
-    "bottom": 0,
-    "width": "25rem",
+    "top": "75px",
+    "left": "10px",
+    "bottom": "150px",
+    "width": "20rem",
     "padding": "2rem 1rem",
-    "background-color": "#f8f9fa",
+    "background-color": "#454d46",
+    "color": "#f2f7f3",
 }
 
 CONTENT_STYLE = {
-    "margin-left": "30rem",
+    "margin-left": "23rem",
     "margin-right": "2rem",
     "padding": "2rem 1rem",
     'marginBottom': 50, 
@@ -74,6 +74,10 @@ def get_clean_data():
     dino_data = dino_data.replace("USA", "United States")
     dino_data["diet"].fillna("Unknown", inplace = True)
 
+    l_md = "<a href='{}' target='_blank'>{}</a>"
+    temp = dino_data[["link", "name"]].values.tolist()
+    dino_data["link"] = [l_md.format(x[0], x[1]) for x in temp]
+
     return dino_data
 
 # Read in global data
@@ -83,19 +87,20 @@ iso = pd.read_csv("data/iso.csv")
 variable_list = ['population', 'engineers', 'hurricanes']
 
 # Setup app and layout/frontend
-app = dash.Dash(__name__,  external_stylesheets=['https://codepen.io/chriddyp/pen/bWLwgP.css'])
+app = dash.Dash(__name__,  external_stylesheets=[dbc.themes.SANDSTONE])
 
 sidebar_tab1 = html.Div(
     [
         html.Label([
-        'Select a period:',
+        html.I('Select a period:'),
         dcc.Dropdown(
             id='period-widget',
             value='Any',  
             options=["Any"] + sorted(dino_data["period_wo_year"].unique().tolist()))]),
         html.Br(),
+        html.Br(),
         html.Label([
-        "Select the country that the dinosaur lived in:",
+        html.I("Select the country that the dinosaur lived in:"),
         dcc.Dropdown(
             id='loc-widget',
             value='All',  
@@ -108,11 +113,12 @@ sidebar_tab1 = html.Div(
 sidebar_tab2 = html.Div(
     [
         html.Label([
-        'Select category:',
+        html.I('Select category:'),
         dcc.RadioItems(
             id = "diet",
             options = ["All"] + dino_data["diet"].unique().tolist(), 
-            value = 'All')
+            value = 'All',
+            labelStyle={'display': 'block'})
      ]),
     ],
     style=SIDEBAR_STYLE
@@ -120,15 +126,32 @@ sidebar_tab2 = html.Div(
 
 period_tab = html.Div(
     children = [
-        html.H5("What types of dinosaurs can be found in different periods and countries?"),
+        html.H5("What types of dinosaurs can be found in different periods and countries?",
+                style={"font-weight": "bold"}),
         html.Iframe(
             id='hist',
             style={"border-width": '0', 'width': '100%', "height": "230px"}
         ),
         html.Br(),
-        html.H5("What are some random dinosaurs of these types?"),
+        html.H5("What are some random dinosaurs of these types?",
+                style={"font-weight": "bold"}),
+        html.I("Reload the page to get a new sample of dinos!"),
         dt.DataTable(
-            id = 'rand_dino_table'
+            id = 'rand_dino_table',
+            style_cell={
+                'textAlign': 'center'
+            },
+            style_header={
+                'backgroundColor': '#415446',
+                'fontWeight': 'bold',
+                'color': "white"
+            },
+            columns=[
+                {"id": "Dino Type", "name":"Dino Type"},
+                {"id": "Click on Dino Name to Learn More", "name": "Click on Dino Name to Learn More", 
+                 "presentation": "markdown"}
+            ],
+            markdown_options={"html": True},
         ),
         sidebar_tab1], 
         style=CONTENT_STYLE
@@ -136,7 +159,8 @@ period_tab = html.Div(
 
 map_tab = html.Div(
     children = [
-        html.H4("What species of dinosaurs are found around the world?"),
+        html.H4("What species of dinosaurs are found around the world?",
+                style={"font-weight": "bold"}),
         html.Iframe(
             id='map',
             style={"border-width": '0', "width": "100%", "height": "400px"}
@@ -146,11 +170,16 @@ map_tab = html.Div(
 )
 
 app.layout = html.Div([
-    dcc.Tabs(id="tabs-example-graph", value='tab-1-example-graph', children=[
-        dcc.Tab(label='Tab One', value='tab-1-example-graph', style=tab_style, selected_style=tab_selected_style),
-        dcc.Tab(label='Tab Two', value='tab-2-example-graph', style=tab_style, selected_style=tab_selected_style),
+    html.H1(
+        "DinoDash",
+        style = {"padding": "10px",
+                "font-weight": "bold"}
+    ),
+    dcc.Tabs(id="tabs", value='tab-1', children=[
+        dcc.Tab(label='Dino Type', value='tab-1', style=tab_style, selected_style=tab_selected_style),
+        dcc.Tab(label='Dino Species and Diet', value='tab-2', style=tab_style, selected_style=tab_selected_style),
     ], style = tabs_styles),
-    html.Div(id='tabs-content-example-graph', children = [period_tab, map_tab])
+    html.Div(id='tabs-content', children = [period_tab, map_tab])
 ])
 
 @app.callback(
@@ -162,12 +191,12 @@ def set_loc_options(period_widget):
         results_df = dino_data.query("period_wo_year == @period_widget")
     return ["All"] + sorted(results_df["lived_in"].astype(str).unique().tolist())
 
-@app.callback(Output('tabs-content-example-graph', 'children'),
-              [Input('tabs-example-graph', 'value')])
+@app.callback(Output('tabs-content', 'children'),
+              [Input('tabs', 'value')])
 def render_content(tab):
-    if tab == 'tab-1-example-graph':
+    if tab == 'tab-1':
         return period_tab
-    elif tab == 'tab-2-example-graph':
+    elif tab == 'tab-2':
         return map_tab
 
 # Set up callbacks/backend
@@ -186,7 +215,7 @@ def plot_altair(period_widget, loc_widget):
         result_df = result_df.query("lived_in == @loc_widget")
         title = title + f" and in {str(loc_widget)}"
     chart = alt.Chart(result_df).mark_bar().encode(
-        x = "count()",
+        x = alt.X("count()", title = "Number of Dinos"),
         y = alt.Y("type", sort = "y", title = "Dino Type"),
     ).configure_mark(
         color='#4b572f'
@@ -215,7 +244,8 @@ def find_random_dinos(period_widget, loc_widget):
     df_list = []
     for type in type_list:
         df_list.append(result_df.query("type == @type").sample())
-    final_df = pd.concat(df_list)[["name", "type", "link"]].sort_values(by=['type'])
+    final_df = pd.concat(df_list)[["link", "type"]].sort_values(by=['type'])
+    final_df = final_df.rename(columns= {"link": "Click on Dino Name to Learn More", "type": "Dino Type"})
     return final_df.to_dict('records')
 
 
@@ -241,7 +271,7 @@ def plot_altair_map(diet):
         .mark_geoshape(stroke="black", strokeWidth=0.15)
         .encode(
             color= alt.condition("datum.species == 'null'", alt.value('white'), 
-                          alt.Color("species:N", scale=alt.Scale(scheme="lightgreyteal"), legend=None)),
+                          alt.Color("species:N", scale=alt.Scale(scheme="warmgreys"), legend=None)),
             tooltip=[
                 alt.Tooltip("English short name lower case:N", title="Country"),
                 alt.Tooltip("species:Q", title="Number of Species"),
