@@ -33,8 +33,7 @@ SIDEBAR_STYLE = {
     "bottom": "150px",
     "width": "20rem",
     "padding": "2rem 1rem",
-    "background-color": "#454d46",
-    "color": "#f2f7f3",
+    "background-color": "#9faba1",
 }
 
 CONTENT_STYLE = {
@@ -96,7 +95,9 @@ sidebar_tab1 = html.Div(
         dcc.Dropdown(
             id='period-widget',
             value='Any',  
-            options=["Any"] + sorted(dino_data["period_wo_year"].unique().tolist()))]),
+            options=["Any"] + sorted(dino_data["period_wo_year"].unique().tolist()))],
+            style = {"color": "#121714",
+                     "width": "180px"}),
         html.Br(),
         html.Br(),
         html.Label([
