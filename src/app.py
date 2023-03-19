@@ -52,7 +52,7 @@ def explode_rows(df, value, column, replacement):
 
 
 def get_clean_data():
-    dino_data = pd.read_csv("data/data.csv")
+    dino_data = pd.read_csv("../data/data.csv")
     split_str = dino_data["period"].str.split(" ")
     dino_data["period_wo_year"] = [" ".join(x[:2]) for x in split_str]
 
@@ -82,7 +82,7 @@ def get_clean_data():
 
 # Read in global data
 dino_data = get_clean_data()
-iso = pd.read_csv("data/iso.csv")
+iso = pd.read_csv("../data/iso.csv")
 
 variable_list = ['population', 'engineers', 'hurricanes']
 
